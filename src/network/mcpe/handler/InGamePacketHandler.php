@@ -25,6 +25,7 @@ namespace pocketmine\network\mcpe\handler;
 
 use pocketmine\block\BaseSign;
 use pocketmine\block\ItemFrame;
+use pocketmine\block\Lectern;
 use pocketmine\block\utils\SignText;
 use pocketmine\entity\animation\ConsumingItemAnimation;
 use pocketmine\entity\Attribute;
@@ -65,12 +66,14 @@ use pocketmine\network\mcpe\protocol\InteractPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\ItemFrameDropItemPacket;
 use pocketmine\network\mcpe\protocol\LabTablePacket;
+use pocketmine\network\mcpe\protocol\LecternUpdatePacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacketV1;
 use pocketmine\network\mcpe\protocol\MapInfoRequestPacket;
 use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
 use pocketmine\network\mcpe\protocol\ModalFormResponsePacket;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
@@ -104,16 +107,17 @@ use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\Limits;
 use pocketmine\utils\TextFormat;
+use pocketmine\world\format\Chunk;
 use function array_push;
 use function base64_encode;
 use function count;
 use function fmod;
 use function implode;
+use function in_array;
 use function is_infinite;
 use function is_nan;
 use function json_decode;
 use function json_encode;
-use function json_last_error_msg;
 use function max;
 use function mb_strlen;
 use function microtime;
@@ -123,11 +127,13 @@ use function strlen;
 use function strpos;
 use function substr;
 use function trim;
+use const JSON_THROW_ON_ERROR;
 
 /**
  * This handler handles packets related to general gameplay.
  */
 class InGamePacketHandler extends PacketHandler{
+	private const MAX_FORM_RESPONSE_DEPTH = 2; //modal/simple will be 1, custom forms 2 - they will never contain anything other than string|int|float|bool|null
 
 	/** @var Player */
 	private $player;
@@ -161,6 +167,12 @@ class InGamePacketHandler extends PacketHandler{
 		return false;
 	}
 
+	public function handleMovePlayer(MovePlayerPacket $packet) : bool{
+		//The client sends this every time it lands on the ground, even when using PlayerAuthInputPacket.
+		//Silence the debug spam that this causes.
+		return true;
+	}
+
 	private function resolveOnOffInputFlags(PlayerAuthInputPacket $packet, int $startFlag, int $stopFlag) : ?bool{
 		$enabled = $packet->hasFlag($startFlag);
 		if($enabled !== $packet->hasFlag($stopFlag)){
@@ -190,7 +202,7 @@ class InGamePacketHandler extends PacketHandler{
 		$curPos = $this->player->getLocation();
 		$newPos = $rawPos->round(4)->subtract(0, 1.62, 0);
 
-		if($this->forceMoveSync and $newPos->distanceSquared($curPos) > 1){  //Tolerate up to 1 block to avoid problems with client-sided physics when spawning in blocks
+		if($this->forceMoveSync && $newPos->distanceSquared($curPos) > 1){  //Tolerate up to 1 block to avoid problems with client-sided physics when spawning in blocks
 			$this->session->getLogger()->debug("Got outdated pre-teleport movement, received " . $newPos . ", expected " . $curPos);
 			//Still getting movements from before teleport, ignore them
 			return false;
@@ -305,11 +317,11 @@ class InGamePacketHandler extends PacketHandler{
 		foreach($data->getActions() as $networkInventoryAction){
 			if(
 				(
-					$networkInventoryAction->sourceType === NetworkInventoryAction::SOURCE_TODO and (
-						$networkInventoryAction->windowId === NetworkInventoryAction::SOURCE_TYPE_CRAFTING_RESULT or
+					$networkInventoryAction->sourceType === NetworkInventoryAction::SOURCE_TODO && (
+						$networkInventoryAction->windowId === NetworkInventoryAction::SOURCE_TYPE_CRAFTING_RESULT ||
 						$networkInventoryAction->windowId === NetworkInventoryAction::SOURCE_TYPE_CRAFTING_USE_INGREDIENT
 					)
-				) or (
+				) || (
 					$this->craftingTransaction !== null &&
 					!$networkInventoryAction->oldItem->getItemStack()->equals($networkInventoryAction->newItem->getItemStack()) &&
 					$networkInventoryAction->sourceType === NetworkInventoryAction::SOURCE_CONTAINER &&
@@ -404,10 +416,10 @@ class InGamePacketHandler extends PacketHandler{
 			case UseItemTransactionData::ACTION_CLICK_BLOCK:
 				//TODO: start hack for client spam bug
 				$clickPos = $data->getClickPosition();
-				$spamBug = ($this->lastRightClickData !== null and
-					microtime(true) - $this->lastRightClickTime < 0.1 and //100ms
-					$this->lastRightClickData->getPlayerPosition()->distanceSquared($data->getPlayerPosition()) < 0.00001 and
-					$this->lastRightClickData->getBlockPosition()->equals($data->getBlockPosition()) and
+				$spamBug = ($this->lastRightClickData !== null &&
+					microtime(true) - $this->lastRightClickTime < 0.1 && //100ms
+					$this->lastRightClickData->getPlayerPosition()->distanceSquared($data->getPlayerPosition()) < 0.00001 &&
+					$this->lastRightClickData->getBlockPosition()->equals($data->getBlockPosition()) &&
 					$this->lastRightClickData->getClickPosition()->distanceSquared($clickPos) < 0.00001 //signature spam bug has 0 distance, but allow some error
 				);
 				//get rid of continued spam if the player clicks and holds right-click
@@ -417,6 +429,8 @@ class InGamePacketHandler extends PacketHandler{
 					return true;
 				}
 				//TODO: end hack for client spam bug
+
+				self::validateFacing($data->getFace());
 
 				$blockPos = $data->getBlockPosition();
 				$vBlockPos = new Vector3($blockPos->getX(), $blockPos->getY(), $blockPos->getZ());
@@ -447,6 +461,15 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		return false;
+	}
+
+	/**
+	 * @throws PacketHandlingException
+	 */
+	private static function validateFacing(int $facing) : void{
+		if(!in_array($facing, Facing::ALL, true)){
+			throw new PacketHandlingException("Invalid facing value $facing");
+		}
 	}
 
 	/**
@@ -565,6 +588,7 @@ class InGamePacketHandler extends PacketHandler{
 
 		switch($action){
 			case PlayerAction::START_BREAK:
+				self::validateFacing($face);
 				if(!$this->player->attackBlock($pos, $face)){
 					$this->onFailedBlockAction($pos, $face);
 				}
@@ -582,6 +606,7 @@ class InGamePacketHandler extends PacketHandler{
 				$this->player->stopSleep();
 				break;
 			case PlayerAction::CRACK_BREAK:
+				self::validateFacing($face);
 				$this->player->continueBreakBlock($pos, $face);
 				break;
 			case PlayerAction::INTERACT_BLOCK: //TODO: ignored (for now)
@@ -707,7 +732,7 @@ class InGamePacketHandler extends PacketHandler{
 	public function handleItemFrameDropItem(ItemFrameDropItemPacket $packet) : bool{
 		$blockPosition = $packet->blockPosition;
 		$block = $this->player->getWorld()->getBlockAt($blockPosition->getX(), $blockPosition->getY(), $blockPosition->getZ());
-		if($block instanceof ItemFrame and $block->getFramedItem() !== null){
+		if($block instanceof ItemFrame && $block->getFramedItem() !== null){
 			return $this->player->attackBlock(new Vector3($blockPosition->getX(), $blockPosition->getY(), $blockPosition->getZ()), $block->getFacing());
 		}
 		return false;
@@ -798,7 +823,7 @@ class InGamePacketHandler extends PacketHandler{
 				$modifiedPages[] = $packet->pageNumber;
 				break;
 			case BookEditPacket::TYPE_SWAP_PAGES:
-				if(!$newBook->pageExists($packet->pageNumber) or !$newBook->pageExists($packet->secondaryPageNumber)){
+				if(!$newBook->pageExists($packet->pageNumber) || !$newBook->pageExists($packet->secondaryPageNumber)){
 					//the client will create pages on its own without telling us until it tries to switch them
 					$newBook->addPage(max($packet->pageNumber, $packet->secondaryPageNumber));
 				}
@@ -873,7 +898,7 @@ class InGamePacketHandler extends PacketHandler{
 			$newParts = [];
 			$inQuotes = false;
 			for($i = 0, $len = strlen($raw); $i <= $len; ++$i){
-				if($i === $len or ($raw[$i] === "," and !$inQuotes)){
+				if($i === $len || ($raw[$i] === "," && !$inQuotes)){
 					$part = substr($raw, $lastComma + 1, $i - ($lastComma + 1));
 					if(trim($part) === ""){ //regular parts will have quotes or something else that makes them non-empty
 						$part = '""';
@@ -894,14 +919,18 @@ class InGamePacketHandler extends PacketHandler{
 			}
 
 			$fixed = "[" . implode(",", $newParts) . "]";
-			if(($ret = json_decode($fixed, $assoc)) === null){
-				throw new \InvalidArgumentException("Failed to fix JSON: " . json_last_error_msg() . "(original: $json, modified: $fixed)");
+			try{
+				return json_decode($fixed, $assoc, self::MAX_FORM_RESPONSE_DEPTH, JSON_THROW_ON_ERROR);
+			}catch(\JsonException $e){
+				throw PacketHandlingException::wrap($e, "Failed to fix JSON (original: $json, modified: $fixed)");
 			}
-
-			return $ret;
 		}
 
-		return json_decode($json, $assoc);
+		try{
+			return json_decode($json, $assoc, self::MAX_FORM_RESPONSE_DEPTH, JSON_THROW_ON_ERROR);
+		}catch(\JsonException $e){
+			throw PacketHandlingException::wrap($e);
+		}
 	}
 
 	public function handleServerSettingsRequest(ServerSettingsRequestPacket $packet) : bool{
@@ -910,6 +939,31 @@ class InGamePacketHandler extends PacketHandler{
 
 	public function handleLabTable(LabTablePacket $packet) : bool{
 		return false; //TODO
+	}
+
+	public function handleLecternUpdate(LecternUpdatePacket $packet) : bool{
+		if($packet->dropBook){
+			//Drop book is handled with an interact event on use item transaction
+			return true;
+		}
+
+		$pos = $packet->blockPosition;
+		$chunkX = $pos->getX() >> Chunk::COORD_BIT_SIZE;
+		$chunkZ = $pos->getZ() >> Chunk::COORD_BIT_SIZE;
+		$world = $this->player->getWorld();
+		if(!$world->isChunkLoaded($chunkX, $chunkZ) || $world->isChunkLocked($chunkX, $chunkZ)){
+			return false;
+		}
+
+		$lectern = $world->getBlockAt($pos->getX(), $pos->getY(), $pos->getZ());
+		if($lectern instanceof Lectern && $this->player->canInteract($lectern->getPosition(), 15)){
+			if(!$lectern->onPageTurn($packet->page)){
+				$this->onFailedBlockAction($lectern->getPosition(), null);
+			}
+			return true;
+		}
+
+		return false;
 	}
 
 	public function handleNetworkStackLatency(NetworkStackLatencyPacket $packet) : bool{
