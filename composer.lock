@@ -275,16 +275,16 @@
         },
         {
             "name": "pocketmine/bedrock-protocol",
-            "version": "7.3.0+bedrock-1.18.0",
+            "version": "7.3.1+bedrock-1.18.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/MiezeMC/BedrockProtocol.git",
-                "reference": "a8197c156794e0266596f082c978cfd074662cbf"
+                "reference": "eff5e62d2cdea7f8001aef91129091182962d318"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/MiezeMC/BedrockProtocol/zipball/a8197c156794e0266596f082c978cfd074662cbf",
-                "reference": "a8197c156794e0266596f082c978cfd074662cbf",
+                "url": "https://api.github.com/repos/MiezeMC/BedrockProtocol/zipball/eff5e62d2cdea7f8001aef91129091182962d318",
+                "reference": "eff5e62d2cdea7f8001aef91129091182962d318",
                 "shasum": ""
             },
             "require": {
