@@ -278,13 +278,13 @@
             "version": "7.3.1+bedrock-1.18.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/pmmp/BedrockProtocol.git",
-                "reference": "c2667453b03ca08a8c54cd89a1fd45cb29196aeb"
+                "url": "https://github.com/MiezeMC/BedrockProtocol.git",
+                "reference": "eff5e62d2cdea7f8001aef91129091182962d318"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/BedrockProtocol/zipball/c2667453b03ca08a8c54cd89a1fd45cb29196aeb",
-                "reference": "c2667453b03ca08a8c54cd89a1fd45cb29196aeb",
+                "url": "https://api.github.com/repos/MiezeMC/BedrockProtocol/zipball/eff5e62d2cdea7f8001aef91129091182962d318",
+                "reference": "eff5e62d2cdea7f8001aef91129091182962d318",
                 "shasum": ""
             },
             "require": {
