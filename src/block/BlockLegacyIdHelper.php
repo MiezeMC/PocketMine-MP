@@ -121,9 +121,6 @@ final class BlockLegacyIdHelper{
 	}
 
 	public static function getSaplingIdentifier(TreeType $treeType) : BID{
-        if ($treeType->id() === TreeType::WARPED()->id()
-        || $treeType->id() === TreeType::CRIMSON()->id())
-            self::getSaplingIdentifier(TreeType::OAK());
 		return new BID(match($treeType->id()){
 			TreeType::OAK()->id() => Ids::OAK_SAPLING,
 			TreeType::SPRUCE()->id() => Ids::SPRUCE_SAPLING,
