@@ -39,6 +39,9 @@ use pocketmine\block\BrownMushroomBlock;
 use pocketmine\block\Button;
 use pocketmine\block\Cactus;
 use pocketmine\block\Cake;
+use pocketmine\block\CakeWithCandle;
+use pocketmine\block\CakeWithDyedCandle;
+use pocketmine\block\Candle;
 use pocketmine\block\Carpet;
 use pocketmine\block\Carrot;
 use pocketmine\block\CarvedPumpkin;
@@ -58,6 +61,7 @@ use pocketmine\block\Dirt;
 use pocketmine\block\Door;
 use pocketmine\block\DoublePlant;
 use pocketmine\block\DoubleTallGrass;
+use pocketmine\block\DyedCandle;
 use pocketmine\block\DyedShulkerBox;
 use pocketmine\block\EnderChest;
 use pocketmine\block\EndPortalFrame;
@@ -171,6 +175,7 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 	private array $serializers = [];
 
 	public function __construct(){
+		$this->registerCandleSerializers();
 		$this->registerSerializers();
 	}
 
@@ -240,6 +245,50 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 		/** @var Writer $writer */
 		$writer = $serializer($blockState);
 		return $writer->getBlockStateData();
+	}
+
+	private function registerCandleSerializers() : void{
+		$this->map(Blocks::CANDLE(), fn(Candle $block) => Helper::encodeCandle($block, new Writer(Ids::CANDLE)));
+		$this->map(Blocks::DYED_CANDLE(), fn(DyedCandle $block) => Helper::encodeCandle($block, new Writer(match($block->getColor()){
+			DyeColor::BLACK() => Ids::BLACK_CANDLE,
+			DyeColor::BLUE() => Ids::BLUE_CANDLE,
+			DyeColor::BROWN() => Ids::BROWN_CANDLE,
+			DyeColor::CYAN() => Ids::CYAN_CANDLE,
+			DyeColor::GRAY() => Ids::GRAY_CANDLE,
+			DyeColor::GREEN() => Ids::GREEN_CANDLE,
+			DyeColor::LIGHT_BLUE() => Ids::LIGHT_BLUE_CANDLE,
+			DyeColor::LIGHT_GRAY() => Ids::LIGHT_GRAY_CANDLE,
+			DyeColor::LIME() => Ids::LIME_CANDLE,
+			DyeColor::MAGENTA() => Ids::MAGENTA_CANDLE,
+			DyeColor::ORANGE() => Ids::ORANGE_CANDLE,
+			DyeColor::PINK() => Ids::PINK_CANDLE,
+			DyeColor::PURPLE() => Ids::PURPLE_CANDLE,
+			DyeColor::RED() => Ids::RED_CANDLE,
+			DyeColor::WHITE() => Ids::WHITE_CANDLE,
+			DyeColor::YELLOW() => Ids::YELLOW_CANDLE,
+			default => throw new AssumptionFailedError("Unhandled DyeColor " . $block->getColor()->name())
+		})));
+		$this->map(Blocks::CAKE_WITH_CANDLE(), fn(CakeWithCandle $block) => Writer::create(Ids::CANDLE_CAKE)
+			->writeBool(StateNames::LIT, $block->isLit()));
+		$this->map(Blocks::CAKE_WITH_DYED_CANDLE(), fn(CakeWithDyedCandle $block) => Writer::create(match($block->getColor()){
+			DyeColor::BLACK() => Ids::BLACK_CANDLE_CAKE,
+			DyeColor::BLUE() => Ids::BLUE_CANDLE_CAKE,
+			DyeColor::BROWN() => Ids::BROWN_CANDLE_CAKE,
+			DyeColor::CYAN() => Ids::CYAN_CANDLE_CAKE,
+			DyeColor::GRAY() => Ids::GRAY_CANDLE_CAKE,
+			DyeColor::GREEN() => Ids::GREEN_CANDLE_CAKE,
+			DyeColor::LIGHT_BLUE() => Ids::LIGHT_BLUE_CANDLE_CAKE,
+			DyeColor::LIGHT_GRAY() => Ids::LIGHT_GRAY_CANDLE_CAKE,
+			DyeColor::LIME() => Ids::LIME_CANDLE_CAKE,
+			DyeColor::MAGENTA() => Ids::MAGENTA_CANDLE_CAKE,
+			DyeColor::ORANGE() => Ids::ORANGE_CANDLE_CAKE,
+			DyeColor::PINK() => Ids::PINK_CANDLE_CAKE,
+			DyeColor::PURPLE() => Ids::PURPLE_CANDLE_CAKE,
+			DyeColor::RED() => Ids::RED_CANDLE_CAKE,
+			DyeColor::WHITE() => Ids::WHITE_CANDLE_CAKE,
+			DyeColor::YELLOW() => Ids::YELLOW_CANDLE_CAKE,
+			default => throw new AssumptionFailedError("Unhandled DyeColor " . $block->getColor()->name())
+		})->writeBool(StateNames::LIT, $block->isLit()));
 	}
 
 	private function registerSerializers() : void{
@@ -394,6 +443,7 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 				->writeColor($block->getColor());
 		});
 		$this->map(Blocks::CARROTS(), fn(Carrot $block) => Helper::encodeCrops($block, new Writer(Ids::CARROTS)));
+		$this->mapSimple(Blocks::CARTOGRAPHY_TABLE(), Ids::CARTOGRAPHY_TABLE);
 		$this->map(Blocks::CARVED_PUMPKIN(), function(CarvedPumpkin $block) : Writer{
 			return Writer::create(Ids::CARVED_PUMPKIN)
 				->writeLegacyHorizontalFacing($block->getFacing());
@@ -823,6 +873,7 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 		$this->mapSimple(Blocks::GRASS_PATH(), Ids::GRASS_PATH);
 		$this->mapSimple(Blocks::GRAVEL(), Ids::GRAVEL);
 		$this->map(Blocks::GREEN_TORCH(), fn(Torch $block) => Helper::encodeColoredTorch($block, true, Writer::create(Ids::COLORED_TORCH_RG)));
+		$this->mapSimple(Blocks::HANGING_ROOTS(), Ids::HANGING_ROOTS);
 		$this->mapSimple(Blocks::HARDENED_CLAY(), Ids::HARDENED_CLAY);
 		$this->mapSimple(Blocks::HARDENED_GLASS(), Ids::HARD_GLASS);
 		$this->mapSimple(Blocks::HARDENED_GLASS_PANE(), Ids::HARD_GLASS_PANE);
@@ -859,7 +910,7 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 		$this->mapSimple(Blocks::IRON_ORE(), Ids::IRON_ORE);
 		$this->map(Blocks::IRON_TRAPDOOR(), fn(Trapdoor $block) => Helper::encodeTrapdoor($block, new Writer(Ids::IRON_TRAPDOOR)));
 		$this->map(Blocks::ITEM_FRAME(), function(ItemFrame $block) : Writer{
-			return Writer::create(Ids::FRAME)
+			return Writer::create($block->isGlowing() ? Ids::GLOW_FRAME : Ids::FRAME)
 				->writeBool(StateNames::ITEM_FRAME_MAP_BIT, $block->hasMap())
 				->writeBool(StateNames::ITEM_FRAME_PHOTO_BIT, false)
 				->writeFacingDirection($block->getFacing());
@@ -982,6 +1033,7 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 		$this->map(Blocks::MUSHROOM_STEM(), fn() => Writer::create(Ids::BROWN_MUSHROOM_BLOCK)
 				->writeInt(StateNames::HUGE_MUSHROOM_BITS, BlockLegacyMetadata::MUSHROOM_BLOCK_STEM));
 		$this->mapSimple(Blocks::MYCELIUM(), Ids::MYCELIUM);
+		$this->mapSimple(Blocks::NETHERITE(), Ids::NETHERITE_BLOCK);
 		$this->mapSimple(Blocks::NETHERRACK(), Ids::NETHERRACK);
 		$this->mapSimple(Blocks::NETHER_BRICKS(), Ids::NETHER_BRICK);
 		$this->mapSimple(Blocks::NETHER_BRICK_FENCE(), Ids::NETHER_BRICK_FENCE);
@@ -1155,6 +1207,7 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 		$this->mapSimple(Blocks::SHROOMLIGHT(), Ids::SHROOMLIGHT);
 		$this->mapSimple(Blocks::SHULKER_BOX(), Ids::UNDYED_SHULKER_BOX);
 		$this->mapSimple(Blocks::SLIME(), Ids::SLIME);
+		$this->mapSimple(Blocks::SMITHING_TABLE(), Ids::SMITHING_TABLE);
 		$this->map(Blocks::SMOKER(), fn(Furnace $block) => Helper::encodeFurnace($block, Ids::SMOKER, Ids::LIT_SMOKER));
 		$this->mapSimple(Blocks::SMOOTH_BASALT(), Ids::SMOOTH_BASALT);
 		$this->map(Blocks::SMOOTH_QUARTZ(), fn() => Helper::encodeQuartz(StringValues::CHISEL_TYPE_SMOOTH, Axis::Y));
@@ -1328,6 +1381,7 @@ final class BlockObjectToBlockStateSerializer implements BlockStateSerializer{
 		});
 		$this->map(Blocks::WHEAT(), fn(Wheat $block) => Helper::encodeCrops($block, new Writer(Ids::WHEAT)));
 		$this->map(Blocks::WHITE_TULIP(), fn() => Helper::encodeRedFlower(StringValues::FLOWER_TYPE_TULIP_WHITE));
+		$this->mapSimple(Blocks::WITHER_ROSE(), Ids::WITHER_ROSE);
 		$this->map(Blocks::WOOL(), function(Wool $block) : Writer{
 			return Writer::create(Ids::WOOL)
 				->writeColor($block->getColor());
