@@ -116,7 +116,7 @@ final class BlockLegacyIdHelper{
 			TreeType::JUNGLE()->id() => Ids::JUNGLE_LEAVES,
 			TreeType::ACACIA()->id() => Ids::ACACIA_LEAVES,
 			TreeType::DARK_OAK()->id() => Ids::DARK_OAK_LEAVES,
-			default => throw new AssumptionFailedError("All tree types should be covered")
+			default => Ids::OAK_LEAVES //TODO: remove that and place the original PMMP code here again?
 		});
 	}
 
