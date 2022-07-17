@@ -526,16 +526,19 @@ final class VanillaItems{
 		self::register("written_book", new WrittenBook(new IID(Ids::WRITTEN_BOOK), "Written Book"));
 
 		foreach(TreeType::getAll() as $type){
-			//TODO: tree type should be dynamic in the future, but we're staying static for now for the sake of consistency
-			self::register($type->name() . "_boat", new Boat(new IID(match($type){
-				TreeType::OAK() => Ids::OAK_BOAT,
-				TreeType::SPRUCE() => Ids::SPRUCE_BOAT,
-				TreeType::BIRCH() => Ids::BIRCH_BOAT,
-				TreeType::JUNGLE() => Ids::JUNGLE_BOAT,
-				TreeType::ACACIA() => Ids::ACACIA_BOAT,
-				TreeType::DARK_OAK() => Ids::DARK_OAK_BOAT,
-				default => throw new AssumptionFailedError("Unhandled tree type " . $type->name())
-			}), $type->getDisplayName() . " Boat", $type));
+            if ($type->getDisplayName() !== TreeType::WARPED()->getDisplayName()
+            && $type->getDisplayName() !== TreeType::CRIMSON()->getDisplayName()) {
+                //TODO: tree type should be dynamic in the future, but we're staying static for now for the sake of consistency
+                self::register($type->name() . "_boat", new Boat(new IID(match ($type) {
+                    TreeType::OAK() => Ids::OAK_BOAT,
+                    TreeType::SPRUCE() => Ids::SPRUCE_BOAT,
+                    TreeType::BIRCH() => Ids::BIRCH_BOAT,
+                    TreeType::JUNGLE() => Ids::JUNGLE_BOAT,
+                    TreeType::ACACIA() => Ids::ACACIA_BOAT,
+                    TreeType::DARK_OAK() => Ids::DARK_OAK_BOAT,
+                    default => throw new AssumptionFailedError("Unhandled tree type " . $type->name())
+                }), $type->getDisplayName() . " Boat", $type));
+            }
 		}
 	}
 
