@@ -41,12 +41,8 @@ class Wood extends Opaque{
 
 	public function getRequiredTypeDataBits() : int{ return 1; }
 
-	protected function decodeType(RuntimeDataReader $r) : void{
-		$this->stripped = $r->readBool();
-	}
-
-	protected function encodeType(RuntimeDataWriter $w) : void{
-		$w->writeBool($this->stripped);
+	protected function describeType(RuntimeDataReader|RuntimeDataWriter $w) : void{
+		$w->bool($this->stripped);
 	}
 
 	public function isStripped() : bool{ return $this->stripped; }
@@ -58,7 +54,7 @@ class Wood extends Opaque{
 	}
 
 	public function getFuelTime() : int{
-		return 300;
+		return $this->woodType->isFlammable() ? 300 : 0;
 	}
 
 	public function getFlameEncouragement() : int{

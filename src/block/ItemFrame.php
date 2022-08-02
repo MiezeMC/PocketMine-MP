@@ -51,24 +51,15 @@ class ItemFrame extends Flowable{
 
 	public function getRequiredTypeDataBits() : int{ return 1; }
 
-	protected function decodeType(RuntimeDataReader $r) : void{
-		$this->glowing = $r->readBool();
-	}
-
-	protected function encodeType(RuntimeDataWriter $w) : void{
-		$w->writeBool($this->glowing);
+	protected function describeType(RuntimeDataReader|RuntimeDataWriter $w) : void{
+		$w->bool($this->glowing);
 	}
 
 	public function getRequiredStateDataBits() : int{ return 4; }
 
-	protected function decodeState(RuntimeDataReader $r) : void{
-		$this->facing = $r->readFacing();
-		$this->hasMap = $r->readBool();
-	}
-
-	protected function encodeState(RuntimeDataWriter $w) : void{
-		$w->writeFacing($this->facing);
-		$w->writeBool($this->hasMap);
+	protected function describeState(RuntimeDataReader|RuntimeDataWriter $w) : void{
+		$w->facing($this->facing);
+		$w->bool($this->hasMap);
 	}
 
 	public function readStateFromWorld() : Block{
@@ -173,11 +164,12 @@ class ItemFrame extends Flowable{
 		if($this->framedItem === null){
 			return false;
 		}
+		$world = $this->position->getWorld();
 		if(lcg_value() <= $this->itemDropChance){
-			$this->position->getWorld()->dropItem($this->position->add(0.5, 0.5, 0.5), clone $this->framedItem);
+			$world->dropItem($this->position->add(0.5, 0.5, 0.5), clone $this->framedItem);
 		}
 		$this->setFramedItem(null);
-		$this->position->getWorld()->setBlock($this->position, $this);
+		$world->setBlock($this->position, $this);
 		return true;
 	}
 

@@ -47,22 +47,14 @@ class TNT extends Opaque{
 
 	public function getRequiredTypeDataBits() : int{ return 1; }
 
-	protected function decodeType(RuntimeDataReader $r) : void{
-		$this->worksUnderwater = $r->readBool();
-	}
-
-	protected function encodeType(RuntimeDataWriter $w) : void{
-		$w->writeBool($this->worksUnderwater);
+	protected function describeType(RuntimeDataReader|RuntimeDataWriter $w) : void{
+		$w->bool($this->worksUnderwater);
 	}
 
 	public function getRequiredStateDataBits() : int{ return 1; }
 
-	protected function decodeState(RuntimeDataReader $r) : void{
-		$this->unstable = $r->readBool();
-	}
-
-	protected function encodeState(RuntimeDataWriter $w) : void{
-		$w->writeBool($this->unstable);
+	protected function describeState(RuntimeDataReader|RuntimeDataWriter $w) : void{
+		$w->bool($this->unstable);
 	}
 
 	public function isUnstable() : bool{ return $this->unstable; }
@@ -102,11 +94,12 @@ class TNT extends Opaque{
 	}
 
 	public function ignite(int $fuse = 80) : void{
-		$this->position->getWorld()->setBlock($this->position, VanillaBlocks::AIR());
+		$world = $this->position->getWorld();
+		$world->setBlock($this->position, VanillaBlocks::AIR());
 
 		$mot = (new Random())->nextSignedFloat() * M_PI * 2;
 
-		$tnt = new PrimedTNT(Location::fromObject($this->position->add(0.5, 0, 0.5), $this->position->getWorld()));
+		$tnt = new PrimedTNT(Location::fromObject($this->position->add(0.5, 0, 0.5), $world));
 		$tnt->setFuse($fuse);
 		$tnt->setWorksUnderwater($this->worksUnderwater);
 		$tnt->setMotion(new Vector3(-sin($mot) * 0.02, 0.2, -cos($mot) * 0.02));
