@@ -80,3 +80,8 @@ parameters:
 			count: 1
 			path: ../../../src/world/generator/normal/Normal.php
 
+		-
+			message: "#^Casting to int something that's already int\\.$#"
+			count: 1
+			path: ../../../src/world/generator/normal/Normal.php
+
