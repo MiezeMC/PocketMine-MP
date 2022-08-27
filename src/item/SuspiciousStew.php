@@ -25,29 +25,27 @@ namespace pocketmine\item;
 
 use pocketmine\data\runtime\RuntimeDataReader;
 use pocketmine\data\runtime\RuntimeDataWriter;
-use pocketmine\entity\Living;
-use pocketmine\player\Player;
 
-class Potion extends Item implements ConsumableItem{
+class SuspiciousStew extends Food{
 
-	private PotionType $potionType;
+	private SuspiciousStewType $suspiciousStewType;
 
 	public function __construct(ItemIdentifier $identifier, string $name){
-		$this->potionType = PotionType::WATER();
+		$this->suspiciousStewType = SuspiciousStewType::POPPY();
 		parent::__construct($identifier, $name);
 	}
 
 	protected function describeType(RuntimeDataReader|RuntimeDataWriter $w) : void{
-		$w->potionType($this->potionType);
+		$w->suspiciousStewType($this->suspiciousStewType);
 	}
 
-	public function getType() : PotionType{ return $this->potionType; }
+	public function getType() : SuspiciousStewType{ return $this->suspiciousStewType; }
 
 	/**
 	 * @return $this
 	 */
-	public function setType(PotionType $type) : self{
-		$this->potionType = $type;
+	public function setType(SuspiciousStewType $type) : self{
+		$this->suspiciousStewType = $type;
 		return $this;
 	}
 
@@ -55,20 +53,23 @@ class Potion extends Item implements ConsumableItem{
 		return 1;
 	}
 
-	public function onConsume(Living $consumer) : void{
+	public function requiresHunger() : bool{
+		return false;
+	}
 
+	public function getFoodRestore() : int{
+		return 6;
+	}
+
+	public function getSaturationRestore() : float{
+		return 7.2;
 	}
 
 	public function getAdditionalEffects() : array{
-		//TODO: check CustomPotionEffects NBT
-		return $this->potionType->getEffects();
+		return $this->suspiciousStewType->getEffects();
 	}
 
 	public function getResidue() : Item{
-		return VanillaItems::GLASS_BOTTLE();
-	}
-
-	public function canStartUsingItem(Player $player) : bool{
-		return true;
+		return VanillaItems::BOWL();
 	}
 }

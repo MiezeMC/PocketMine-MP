@@ -21,28 +21,17 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\utils;
+namespace pocketmine\data\bedrock;
 
-trait SingletonTrait{
-	/** @var self|null */
-	private static $instance = null;
-
-	private static function make() : self{
-		return new self();
-	}
-
-	public static function getInstance() : self{
-		if(self::$instance === null){
-			self::$instance = self::make();
-		}
-		return self::$instance;
-	}
-
-	public static function setInstance(self $instance) : void{
-		self::$instance = $instance;
-	}
-
-	public static function reset() : void{
-		self::$instance = null;
-	}
+final class SuspiciousStewTypeIds{
+	public const POPPY = 0;
+	public const CORNFLOWER = 1;
+	public const TULIP = 2;
+	public const AZURE_BLUET = 3;
+	public const LILY_OF_THE_VALLEY = 4;
+	public const DANDELION = 5;
+	public const BLUE_ORCHID = 6;
+	public const ALLIUM = 7;
+	public const OXEYE_DAISY = 8;
+	public const WITHER_ROSE = 9;
 }
