@@ -1095,7 +1095,7 @@ final class VanillaBlocks{
 
 		$saplingTypeInfo = new Info(BreakInfo::instant(), [Tags::POTTABLE_PLANTS]);
         
-        self::register(TreeType::OAK()->name() . "_leaves", new Sapling(new BID(Ids::OAK_SAPLING), TreeType::OAK()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::OAK()));
+        self::register(TreeType::OAK()->name() . "_sapling", new Sapling(new BID(Ids::OAK_SAPLING), TreeType::OAK()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::OAK()));
         self::register(TreeType::DARK_OAK()->name() . "_sapling", new Sapling(new BID(Ids::DARK_OAK_SAPLING), TreeType::DARK_OAK()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::DARK_OAK()));
         self::register(TreeType::BIRCH()->name() . "_sapling", new Sapling(new BID(Ids::BIRCH_SAPLING), TreeType::BIRCH()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::BIRCH()));
         self::register(TreeType::JUNGLE()->name() . "_sapling", new Sapling(new BID(Ids::JUNGLE_SAPLING), TreeType::JUNGLE()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::JUNGLE()));
