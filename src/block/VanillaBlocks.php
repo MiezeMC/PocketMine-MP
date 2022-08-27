@@ -1094,6 +1094,13 @@ final class VanillaBlocks{
 
 
 		$saplingTypeInfo = new Info(BreakInfo::instant(), [Tags::POTTABLE_PLANTS]);
+        
+        self::register(TreeType::OAK()->name() . "_leaves", new Sapling(new BID(Ids::OAK_SAPLING), TreeType::OAK()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::OAK()));
+        self::register(TreeType::DARK_OAK()->name() . "_sapling", new Sapling(new BID(Ids::DARK_OAK_SAPLING), TreeType::DARK_OAK()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::DARK_OAK()));
+        self::register(TreeType::BIRCH()->name() . "_sapling", new Sapling(new BID(Ids::BIRCH_SAPLING), TreeType::BIRCH()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::BIRCH()));
+        self::register(TreeType::JUNGLE()->name() . "_sapling", new Sapling(new BID(Ids::JUNGLE_SAPLING), TreeType::JUNGLE()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::JUNGLE()));
+        self::register(TreeType::SPRUCE()->name() . "_sapling", new Sapling(new BID(Ids::SPRUCE_SAPLING), TreeType::SPRUCE()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::SPRUCE()));
+        self::register(TreeType::ACACIA()->name() . "_sapling", new Sapling(new BID(Ids::ACACIA_SAPLING), TreeType::ACACIA()->getDisplayName() . " Sapling", $saplingTypeInfo, TreeType::ACACIA()));
 
 		$sandstoneBreakInfo = new Info(BreakInfo::pickaxe(0.8, ToolTier::WOOD()));
 		self::register("red_sandstone_stairs", new Stair(new BID(Ids::RED_SANDSTONE_STAIRS), "Red Sandstone Stairs", $sandstoneBreakInfo));
