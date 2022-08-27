@@ -1086,14 +1086,6 @@ final class VanillaBlocks{
 		});
 		$saplingTypeInfo = new Info(BreakInfo::instant(), [Tags::POTTABLE_PLANTS]);
 
-		foreach(TreeType::getAll() as $treeType){
-			$name = $treeType->getDisplayName();
-			if (TreeType::WARPED()->getDisplayName() !== $name && TreeType::CRIMSON()->getDisplayName() !== $name) {
-                self::register($treeType->name() . "_sapling", new Sapling(BlockLegacyIdHelper::getSaplingIdentifier($treeType), $name . " Sapling", $saplingTypeInfo, $treeType));
-                self::register($treeType->name() . "_leaves", new Leaves(BlockLegacyIdHelper::getLeavesIdentifier($treeType), $name . " Leaves", $leavesBreakInfo, $treeType));
-            }
-		}
-
 		$sandstoneBreakInfo = new Info(BreakInfo::pickaxe(0.8, ToolTier::WOOD()));
 		self::register("red_sandstone_stairs", new Stair(new BID(Ids::RED_SANDSTONE_STAIRS), "Red Sandstone Stairs", $sandstoneBreakInfo));
 		self::register("smooth_red_sandstone_stairs", new Stair(new BID(Ids::SMOOTH_RED_SANDSTONE_STAIRS), "Smooth Red Sandstone Stairs", $sandstoneBreakInfo));
