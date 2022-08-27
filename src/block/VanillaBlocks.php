@@ -1084,6 +1084,15 @@ final class VanillaBlocks{
 				return parent::getBreakTime($item);
 			}
 		});
+
+        self::register(TreeType::OAK()->name() . "_leaves", new Leaves(new BID(Ids::OAK_LEAVES), TreeType::OAK()->getDisplayName() . " Leaves", $leavesBreakInfo, TreeType::OAK()));
+        self::register(TreeType::DARK_OAK()->name() . "_leaves", new Leaves(new BID(Ids::DARK_OAK_LEAVES), TreeType::DARK_OAK()->getDisplayName() . " Leaves", $leavesBreakInfo, TreeType::DARK_OAK()));
+        self::register(TreeType::BIRCH()->name() . "_leaves", new Leaves(new BID(Ids::BIRCH_LEAVES), TreeType::BIRCH()->getDisplayName() . " Leaves", $leavesBreakInfo, TreeType::BIRCH()));
+        self::register(TreeType::JUNGLE()->name() . "_leaves", new Leaves(new BID(Ids::JUNGLE_LEAVES), TreeType::JUNGLE()->getDisplayName() . " Leaves", $leavesBreakInfo, TreeType::JUNGLE()));
+        self::register(TreeType::SPRUCE()->name() . "_leaves", new Leaves(new BID(Ids::SPRUCE_LEAVES), TreeType::SPRUCE()->getDisplayName() . " Leaves", $leavesBreakInfo, TreeType::SPRUCE()));
+        self::register(TreeType::ACACIA()->name() . "_leaves", new Leaves(new BID(Ids::ACACIA_LEAVES), TreeType::ACACIA()->getDisplayName() . " Leaves", $leavesBreakInfo, TreeType::ACACIA()));
+
+
 		$saplingTypeInfo = new Info(BreakInfo::instant(), [Tags::POTTABLE_PLANTS]);
 
 		$sandstoneBreakInfo = new Info(BreakInfo::pickaxe(0.8, ToolTier::WOOD()));
