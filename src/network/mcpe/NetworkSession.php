@@ -88,6 +88,7 @@ use pocketmine\network\mcpe\protocol\SetTimePacket;
 use pocketmine\network\mcpe\protocol\SetTitlePacket;
 use pocketmine\network\mcpe\protocol\TakeItemActorPacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
+use pocketmine\network\mcpe\protocol\ToastRequestPacket;
 use pocketmine\network\mcpe\protocol\TransferPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\types\command\CommandData;
@@ -435,8 +436,11 @@ class NetworkSession{
 			if($ev->isCancelled()){
 				return false;
 			}
+			$packets = $ev->getPackets();
 
-			$this->addToSendBuffer($packet);
+			foreach($packets as $evPacket){
+				$this->addToSendBuffer($evPacket);
+			}
 			if($immediate){
 				$this->flushSendBuffer(true);
 			}
@@ -1098,6 +1102,10 @@ class NetworkSession{
 
 	public function onEmote(Human $from, string $emoteId) : void{
 		$this->sendDataPacket(EmotePacket::create($from->getId(), $emoteId, EmotePacket::FLAG_SERVER));
+	}
+
+	public function onToastNotification(string $title, string $body) : void{
+		$this->sendDataPacket(ToastRequestPacket::create($title, $body));
 	}
 
 	public function tick() : void{
